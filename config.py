@@ -26,17 +26,17 @@ def get_args():
                         help='image resize dimensions (default: 256)')
     parser.add_argument("--action-type", default='norm-train', type=str, metavar='T',
                         help='norm-train/norm-test (default: norm-train)')
-    parser.add_argument('-bs', '--batch-size', default=32, type=int, metavar='B',
+    parser.add_argument('-bs', '--batch-size', default=16, type=int, metavar='B',
                         help='train batch size (default: 32)')
     parser.add_argument('--lr', type=float, default=2e-4, metavar='LR',
                         help='learning rate (default: 2e-4)')
-    parser.add_argument('--meta-epochs', type=int, default=25, metavar='N',
+    parser.add_argument('--meta-epochs', type=int, default=1, metavar='N',
                         help='number of meta epochs to train (default: 25)')
-    parser.add_argument('--sub-epochs', type=int, default=8, metavar='N',
+    parser.add_argument('--sub-epochs', type=int, default=1, metavar='N',
                         help='number of sub epochs to train (default: 8)')
-    parser.add_argument('--pro', action='store_true', default=False,
+    parser.add_argument('--pro', action='store_true', default=True,
                         help='enables estimation of AUPRO metric')
-    parser.add_argument('--viz', action='store_true', default=False,
+    parser.add_argument('--viz', action='store_true', default=True,
                         help='saves test data visualizations')
     parser.add_argument('--workers', default=4, type=int, metavar='G',
                         help='number of data loading workers (default: 4)')

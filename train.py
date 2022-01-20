@@ -2,7 +2,7 @@ import os, time
 import numpy as np
 import torch
 import torch.nn.functional as F
-from sklearn.metrics import roc_auc_score, auc, precision_recall_curve
+from sklearn.metrics import roc_auc_score, auc, precision_recall_curve, average_precision_score
 from skimage.measure import label, regionprops
 from tqdm import tqdm
 from visualize import *
@@ -289,7 +289,9 @@ def train(c):
     print('train/test loader batches', len(train_loader), len(test_loader))
     # stats
     det_roc_obs = Score_Observer('DET_AUROC')
+    det_prc_obs = Score_Observer('DET_AUPRC')
     seg_roc_obs = Score_Observer('SEG_AUROC')
+    seg_prc_obs = Score_Observer('SEG_AUPRC')
     seg_pro_obs = Score_Observer('SEG_AUPRO')
     if c.action_type == 'norm-test':
         c.meta_epochs = 1
@@ -332,10 +334,14 @@ def train(c):
         gt_label = np.asarray(gt_label_list, dtype=np.bool)
         det_roc_auc = roc_auc_score(gt_label, score_label)
         _ = det_roc_obs.update(100.0*det_roc_auc, epoch)
+        det_prc_auc = average_precision_score(gt_label, score_label)
+        _ = det_prc_obs.update(100.0*det_prc_auc, epoch)
         # calculate segmentation AUROC
         gt_mask = np.squeeze(np.asarray(gt_mask_list, dtype=np.bool), axis=1)
         seg_roc_auc = roc_auc_score(gt_mask.flatten(), super_mask.flatten())
+        seg_prc_auc = average_precision_score(gt_mask.flatten(), super_mask.flatten())
         save_best_seg_weights = seg_roc_obs.update(100.0*seg_roc_auc, epoch)
+        _ = seg_prc_obs.update(100.0*seg_prc_auc, epoch)
         if save_best_seg_weights and c.action_type != 'norm-test':
             save_weights(encoder, decoders, c.model, run_date)  # avoid unnecessary saves
         # calculate segmentation AUPRO
@@ -407,7 +413,7 @@ def train(c):
             seg_pro_auc = auc(fprs_selected, pros_mean_selected)
             _ = seg_pro_obs.update(100.0*seg_pro_auc, epoch)
     #
-    save_results(det_roc_obs, seg_roc_obs, seg_pro_obs, c.model, c.class_name, run_date)
+    save_results(det_roc_obs, det_prc_obs, seg_roc_obs, seg_prc_obs, seg_pro_obs, c.model, c.class_name, run_date)
     # export visualuzations
     if c.viz:
         precision, recall, thresholds = precision_recall_curve(gt_label, score_label)
